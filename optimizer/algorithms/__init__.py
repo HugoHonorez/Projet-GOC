@@ -4,7 +4,7 @@ Pour ajouter une métaheuristique : créer un module dans ce dossier, l'ajouter 
 puis l'ajouter au dictionnaire CONTENDERS du notebook 99_comparison.
 """
 
-from . import ant_colony, identity, random_search, simulated_annealing, surrogate_filtered
+from . import ant_colony, identity, random_search, surrogate_filtered
 
 # Correspondance nom -> fonction run, pratique pour choisir un algorithme par son nom.
 ALGORITHMS = {
@@ -12,5 +12,4 @@ ALGORITHMS = {
     random_search.name: random_search.run,
     surrogate_filtered.name: surrogate_filtered.run,
     ant_colony.name: ant_colony.run,
-    simulated_annealing.name: simulated_annealing.run,
 }

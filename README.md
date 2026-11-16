@@ -25,7 +25,6 @@ Open them in VS Code with the `.venv` kernel.
 | `02_noise_and_surrogate` | noise of the fitness per instance, re-evaluations needed, correlation between distance cost and fitness |
 | `03_metaheuristic_template` | how to write, run and compare algorithms with `optimizer`, comparison table, convergence plots, solution files |
 | `04_ant_colony` | ant colony optimisation: principle, step-by-step construction, pheromone evolution, parameter studies, comparison with baselines on all instances, best solutions |
-| `05_simulated_annealing` | simulated annealing: acceptance rule, detailed trajectory, parameter studies, comparison with notebook 04 results, best solutions |
 | `99_comparison` | comparison of all metaheuristics on all instances; add a new metaheuristic with one line in `CONTENDERS` (only the new one is computed) |
 
 Analysis and plotting code lives in the notebooks next to the figures it produces. Measurements are cached in `results/`.
@@ -47,7 +46,7 @@ optimizer/              framework for metaheuristics
   experiment.py         run_algorithm, run_grid (optionally parallel), results and history frames, save/load
   result.py             Result record (best mapping, history, algorithm trace)
   solution_files.py     <Group>_Challenge_<n>.txt writer (write_*_if_better never overwrites a better existing solution)
-  algorithms/           identity, random_search, surrogate_filtered, ant_colony, simulated_annealing
+  algorithms/           identity, random_search, surrogate_filtered, ant_colony
 visualizer/             local web app
 ```
 
