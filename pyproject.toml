@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "goc-qubit-allocation"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "qiskit==1.2.4",
+    "numpy",
+    "pandas",
+    "scipy",
+    "matplotlib",
+]
+
+[project.optional-dependencies]
+notebooks = ["jupyter", "ipykernel", "nbformat", "nbconvert", "networkx", "pylatexenc"]
+
+[tool.setuptools.packages.find]
+include = ["goc*", "optimizer*", "visualizer*"]

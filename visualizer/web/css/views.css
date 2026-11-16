@@ -1,0 +1,73 @@
+svg { display: block; }
+svg text { font-family: var(--mono); }
+
+.graph { width: 100%; height: 460px; touch-action: none; }
+.hardware { width: 100%; height: auto; }
+
+.edge { fill: none; stroke-linecap: round; }
+.edge.d1, .overlay.d1 { stroke: var(--d1); }
+.edge.d2, .overlay.d2 { stroke: var(--d2); }
+.edge.d3, .overlay.d3 { stroke: var(--d3); }
+.edge-count { font-size: 9px; fill: var(--muted); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+
+.vertex { cursor: grab; }
+.vertex circle { fill: var(--logical-soft); stroke: var(--logical); stroke-width: 1.5; }
+.vertex .name { font-size: 11px; font-weight: 600; fill: var(--ink); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.vertex .phys { font-size: 9px; fill: var(--physical); text-anchor: middle; pointer-events: none; }
+
+.coupling { stroke: var(--physical-soft); stroke-width: 8; stroke-linecap: round; }
+.overlay { fill: none; stroke-linecap: round; }
+.overlay.d2, .overlay.d3 { stroke-dasharray: 5 4; }
+
+.pnode { cursor: pointer; }
+.pnode .body { fill: var(--panel); stroke: var(--physical); stroke-width: 1.2; stroke-dasharray: 3 3; }
+.pnode.used .body { fill: var(--logical-soft); stroke: var(--logical); stroke-width: 1.5; stroke-dasharray: none; }
+.pnode .name { font-size: 11px; font-weight: 600; fill: var(--ink); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.pnode.free .name { fill: var(--physical); font-weight: 400; }
+.pnode .index { font-size: 9px; fill: var(--physical); text-anchor: middle; pointer-events: none; }
+.pnode .ring { fill: none; stroke: none; stroke-width: 2.5; }
+.pnode.selected .ring { stroke: var(--accent); }
+
+.pnode .index, .vertex .phys, .edge-count { paint-order: stroke; stroke: var(--panel); stroke-width: 3px; stroke-linejoin: round; }
+
+.dim { opacity: 0.12; }
+
+td.truncate { max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+.status:empty { display: none; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 11px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.key { display: inline-block; width: 18px; border-top: 3px solid; }
+.key.d1 { border-color: var(--d1); }
+.key.d2 { border-color: var(--d2); border-top-style: dashed; }
+.key.d3 { border-color: var(--d3); border-top-style: dashed; }
+td.d1 { color: var(--d1); } td.d2 { color: var(--d2); } td.d3 { color: var(--d3); }
+
+.wire { stroke: var(--wire); stroke-width: 1; }
+.wire-label { font-size: 11px; font-weight: 600; fill: var(--logical); dominant-baseline: central; }
+.wire-sub { font-size: 10px; fill: var(--physical); dominant-baseline: central; }
+.wire-tail { font-size: 10px; fill: var(--logical); dominant-baseline: central; }
+.routed .wire-label { fill: var(--physical); }
+.routed .wire-sub { fill: var(--logical); }
+.tick { font-size: 9px; fill: var(--muted); text-anchor: middle; }
+
+.gate1 rect { fill: var(--panel); stroke: var(--muted); stroke-width: 1; }
+.gate1 text { font-size: 8.5px; font-weight: 600; fill: var(--ink); text-anchor: middle; dominant-baseline: central; }
+.gate2 { --gate: var(--ink); }
+.gate2.d1 { --gate: var(--d1); }
+.gate2.d2 { --gate: var(--d2); }
+.gate2.d3 { --gate: var(--d3); }
+.gate2 line { stroke: var(--gate); stroke-width: 1.5; }
+.gate2 .dot { fill: var(--gate); }
+.gate2 .target { fill: var(--panel); stroke: var(--gate); stroke-width: 1.5; }
+.gate2 .cross { stroke-width: 2; }
+.gate2 rect { fill: var(--panel); stroke: var(--gate); stroke-width: 1.3; }
+.gate2 text { font-size: 7.5px; font-weight: 600; fill: var(--gate); text-anchor: middle; dominant-baseline: central; }
+
+.circuit-scroll { overflow: auto; max-height: 75vh; border: 1px solid var(--soft); border-radius: 4px; }
+
+.costs { font-family: var(--mono); color: var(--muted); font-size: 11px; word-break: break-all; }
+.status { min-height: 1.4em; font-size: 12px; }
+.submission { display: flex; gap: 6px; align-items: center; }
+.submission { align-items: flex-start; }
+.submission code { flex: 1; min-width: 0; word-break: break-word; background: var(--soft); padding: 3px 6px; border-radius: 3px; }

@@ -1,0 +1,11 @@
+qiskit==1.2.4
+numpy
+pandas
+scipy
+matplotlib
+jupyter
+ipykernel
+nbformat
+nbconvert
+networkx
+pylatexenc

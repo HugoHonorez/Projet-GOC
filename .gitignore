@@ -1,0 +1,21 @@
+# Environnement virtuel Python : propre à chaque ordinateur, se recrée avec uv (voir README).
+.venv/
+
+# Fichiers compilés automatiquement par Python.
+__pycache__/
+*.pyc
+
+# Métadonnées créées par l'installation éditable (uv pip install -e .).
+*.egg-info/
+
+# Dossier de travail temporaire du pont vers source.py.
+.goc_cache/
+
+# Sauvegardes automatiques de Jupyter.
+.ipynb_checkpoints/
+
+# Réglages locaux de l'éditeur.
+.vscode/
+
+# Sujet du cours : enlève le « # » de la ligne suivante pour ne pas l'envoyer sur GitHub.
+GOC_2026_Qubit_Allocation.pdf

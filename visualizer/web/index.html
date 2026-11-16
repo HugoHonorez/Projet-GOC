@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GOC Instance Visualizer</title>
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/layout.css">
+<link rel="stylesheet" href="/css/views.css">
+<script type="module" src="/js/main.js"></script>
+</head>
+<body>
+<header class="app-header">
+  <span class="app-name">GOC Visualizer</span>
+  <nav id="instance-picker" class="picker"><span class="muted">Loading instances…</span></nav>
+  <div class="legend">
+    <span><i class="key d1"></i>distance 1</span>
+    <span><i class="key d2"></i>distance 2</span>
+    <span><i class="key d3"></i>distance ≥ 3</span>
+  </div>
+</header>
+<dl id="summary-bar" class="summary"></dl>
+<div class="app-body">
+  <main class="main">
+    <div class="placement">
+      <section class="card">
+        <div class="card-head">
+          <h2>Interaction graph</h2>
+          <span class="hint">width = 2-qubit gates · drag nodes</span>
+        </div>
+        <svg id="interaction-graph" class="graph"></svg>
+      </section>
+      <section class="card">
+        <div class="card-head">
+          <h2 id="hardware-title">Hardware</h2>
+          <label class="check"><input type="checkbox" id="overlay-toggle" checked>interactions</label>
+        </div>
+        <div class="scroll-x"><svg id="hardware-view" class="hardware"></svg></div>
+        <span class="hint">click two physical qubits to swap them</span>
+      </section>
+    </div>
+    <section class="card" id="details-tables"></section>
+    <section class="card" id="circuit-view"></section>
+  </main>
+  <aside class="sidebar">
+    <section class="side-section" id="mapping-panel"></section>
+    <section class="side-section" id="evaluation-panel"></section>
+    <section class="side-section" id="history-panel"></section>
+    <section class="side-section" id="solutions-panel"></section>
+  </aside>
+</div>
+</body>
+</html>
