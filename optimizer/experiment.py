@@ -25,7 +25,7 @@ def algorithm_name(algorithm):
 
 
 def run_algorithm(algorithm, instance_id, budget, seed=None, name=None, **params):
-    """Exécute un algorithme jusqu'à épuisement du budget et renvoie un `Result`.
+    """Exécute un algorithme jusqu'à épuisement du budget (ou jusqu'à ce qu'il s'arrête seul) et renvoie un `Result`.
 
     `algorithm` est une fonction `run(problem, rng, **params)` ; `params` sont ses paramètres.
     """
@@ -38,7 +38,7 @@ def run_algorithm(algorithm, instance_id, budget, seed=None, name=None, **params
         algorithm(problem, rng, **params)
     except BudgetExhausted:
         pass
-    return Result.from_problem(problem, name or algorithm_name(algorithm), seed, params)
+    return Result.from_problem(problem, name or algorithm_name(algorithm), seed, params, budget)
 
 
 def _run_task(task):

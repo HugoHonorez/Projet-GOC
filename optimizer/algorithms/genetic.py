@@ -12,7 +12,8 @@ Chaque placement n'est évalué qu'une fois : un enfant identique à un placemen
 import numpy as np
 
 from ..construction import construction_order, interaction_weights
-from ..representation import random_swap_indices, swap
+from ..hybrid.hooks import improve_iteration, improve_solution, normalized
+from ..representation import from_mapping, random_swap_indices, swap, to_mapping
 
 name = "genetic"
 
@@ -125,7 +126,7 @@ def inheritance(child, p1, p2, n):
 
 def run(problem, rng, population_size=20, selection="tournament", tournament_size=2, tournament_p=1.0,
         crossover_operator="pmx", crossover_rate=0.8, mutation_rate=0.1, construction_genes=False,
-        initial_candidates=1, preselection=1):
+        initial_candidates=1, preselection=1, hooks=None, initial_mapping=None):
     """Exécute l'algorithme génétique jusqu'à épuisement du budget.
 
     Paramètres :
@@ -136,9 +137,13 @@ def run(problem, rng, population_size=20, selection="tournament", tournament_siz
     - construction_genes : True = les gènes sont rangés dans l'ordre de construction i_1..i_n pendant le croisement
       (qubits qui interagissent proches dans le chromosome) ;
     - initial_candidates : chaque individu initial est le meilleur selon C de ce nombre de permutations aléatoires ;
-    - preselection : on génère preselection × N enfants et on n'évalue que les N meilleurs selon C.
+    - preselection : on génère preselection × N enfants et on n'évalue que les N meilleurs selon C ;
+    - hooks : hybridation de bas niveau (optimizer/hybrid/hooks.py) ; « solution » s'applique à chaque enfant avant
+      la présélection et l'évaluation (algorithme mémétique), « iteration » au meilleur individu après le remplacement ;
+    - initial_mapping : placement inséré dans la population initiale (relais : départ de la meilleure solution d'une étape précédente).
     """
     n, m = problem.n, problem.m
+    hooks = normalized(hooks)
     # Ordre des gènes pendant le croisement : identité, ou ordre de construction suivi des positions libres.
     gene_order = np.arange(m)
     if construction_genes:
@@ -159,6 +164,8 @@ def run(problem, rng, population_size=20, selection="tournament", tournament_siz
     for _ in range(population_size):
         candidates = [rng.permutation(m) for _ in range(initial_candidates)]
         population.append(min(candidates, key=problem.surrogate_of))
+    if initial_mapping is not None:
+        population[0] = from_mapping(initial_mapping, m)
     costs = [evaluate(sigma) for sigma in population]
     generation = 0
     while True:
@@ -185,6 +192,9 @@ def run(problem, rng, population_size=20, selection="tournament", tournament_siz
                 if rng.random() < mutation_rate:
                     child = swap(child, *random_swap_indices(n, m, rng))
                 children.append(child)
+        # Hooks « solution » : chaque enfant est amélioré avant d'être évalué (algorithme mémétique).
+        if hooks["solution"]:
+            children = [from_mapping(improve_solution(problem, to_mapping(child, n), hooks, rng), m) for child in children]
         # Présélection gratuite par C (sans effet si preselection = 1).
         if preselection > 1:
             children = sorted(children, key=problem.surrogate_of)[:population_size]
@@ -207,6 +217,12 @@ def run(problem, rng, population_size=20, selection="tournament", tournament_siz
             keep += [k for k in np.argsort(pool_costs, kind="stable") if k not in keep][: population_size - len(keep)]
         population = [pool[k] for k in keep]
         costs = [pool_costs[k] for k in keep]
+        # Hooks « itération » : amélioration du meilleur individu (rang 0 après le tri) ; il le remplace s'il est meilleur.
+        if hooks["iteration"]:
+            improved, improved_cost = improve_iteration(problem, to_mapping(population[0], n), costs[0], hooks, rng)
+            known.setdefault(tuple(improved), improved_cost)
+            if improved_cost < costs[0] and tuple(improved) not in {tuple(int(u) for u in s[:n]) for s in population}:
+                population[0], costs[0] = from_mapping(improved, m), improved_cost
         trace["generations"].append({
             "generation": generation,
             "evaluations": problem.evaluations,

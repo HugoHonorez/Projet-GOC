@@ -2,9 +2,12 @@
 
 Pour ajouter une métaheuristique : créer un module dans ce dossier, l'ajouter au dictionnaire ci-dessous,
 puis l'ajouter au dictionnaire CONTENDERS du notebook 99_comparison.
+Pour l'hybridation (hooks et relais d'étapes) : voir optimizer/hybrid/ et le notebook 07_hybridization.
 """
 
-from . import ant_colony, genetic, grasp, identity, random_search, surrogate_filtered
+from . import ant_colony, genetic, grasp, hybrid, identity, random_search, surrogate_filtered
+# Algorithmes de l'équipe, intégrés sans changer leur logique (voir l'en-tête de chaque module).
+from . import bee_colony, iterated_local_search, multi_start, pso_de, simulated_annealing, tabu_search, variable_neighbourhood_search
 
 # Correspondance nom -> fonction run, pratique pour choisir un algorithme par son nom.
 ALGORITHMS = {
@@ -14,4 +17,13 @@ ALGORITHMS = {
     ant_colony.name: ant_colony.run,
     grasp.name: grasp.run,
     genetic.name: genetic.run,
+    simulated_annealing.name: simulated_annealing.run,
+    pso_de.name: pso_de.run,
+    bee_colony.name: bee_colony.run,
+    tabu_search.name: tabu_search.run,
+    multi_start.name: multi_start.run,
+    iterated_local_search.name: iterated_local_search.run,
+    variable_neighbourhood_search.name: variable_neighbourhood_search.run,
+    # Relais d'étapes (hybridation de haut niveau) ; voir optimizer/hybrid/.
+    hybrid.name: hybrid.run,
 }

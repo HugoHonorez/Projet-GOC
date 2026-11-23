@@ -13,8 +13,10 @@ Aucune mémoire d'une itération à l'autre (multi-départ indépendant).
 import numpy as np
 
 from ..construction import added_cost, construction_order, hardware_degree, interaction_weights
+from ..hybrid.hooks import improve_iteration, improve_solution, normalized
+from ..hybrid.improvers import fitness_descent as fitness_descent_improver
 from ..local_search import surrogate_local_optimum
-from ..representation import from_mapping, random_swap_indices, swap, to_mapping
+from ..representation import from_mapping, to_mapping
 
 name = "grasp"
 
@@ -73,25 +75,14 @@ class Constructor:
 
 
 def fitness_descent(problem, start_mapping, start_cost, rng, patience, neighbours):
-    """Descente échantillonnée sur f : à chaque pas, on tire `neighbours` voisins, on évalue le meilleur selon C,
-    on s'y déplace s'il améliore f ; arrêt après `patience` échecs consécutifs (ou budget épuisé).
+    """Descente échantillonnée sur f (brique commune optimizer.hybrid.improvers.fitness_descent).
     Renvoie (placement final, coût, nombre d'évaluations utilisées)."""
-    current = from_mapping(start_mapping, problem.m)
-    current_cost = start_cost
-    failures = used = 0
-    while failures < patience:
-        pool = [swap(current, *random_swap_indices(problem.n, problem.m, rng)) for _ in range(neighbours)]
-        candidate = min(pool, key=problem.surrogate_of)
-        cost = problem.fitness_of(candidate)
-        used += 1
-        if cost < current_cost:
-            current, current_cost, failures = candidate, cost, 0
-        else:
-            failures += 1
-    return to_mapping(current, problem.n), current_cost, used
+    before = problem.evaluations
+    mapping, cost = fitness_descent_improver(problem, start_mapping, start_cost, rng, patience=patience, neighbours=neighbours)
+    return mapping, cost, problem.evaluations - before
 
 
-def run(problem, rng, alpha=0.2, rcl="value", cardinality=3, local_search=True, fitness_patience=0, fitness_neighbours=20, max_skips=50):
+def run(problem, rng, alpha=0.2, rcl="value", cardinality=3, local_search=True, fitness_patience=0, fitness_neighbours=20, max_skips=50, hooks=None):
     """Exécute GRASP jusqu'à épuisement du budget.
 
     Paramètres :
@@ -101,10 +92,13 @@ def run(problem, rng, alpha=0.2, rcl="value", cardinality=3, local_search=True, 
     - fitness_patience : > 0 active la descente échantillonnée sur f (arrêt après ce nombre d'échecs consécutifs) ;
     - fitness_neighbours : voisins tirés à chaque pas de cette descente (le meilleur selon C est évalué) ;
     - max_skips : nombre maximal d'itérations consécutives sautées parce que le placement était déjà évalué
-      (au-delà, on le réévalue : utile quand alpha est petit et que les constructions se répètent).
+      (au-delà, on le réévalue : utile quand alpha est petit et que les constructions se répètent) ;
+    - hooks : hybridation de bas niveau (optimizer/hybrid/hooks.py) ; « solution » s'applique après la recherche locale,
+      avant l'évaluation, « iteration » à la solution de l'itération après son évaluation.
     """
     instance = problem.instance
     constructor = Constructor(instance)
+    hooks = normalized(hooks)
     evaluated = set()
     trace = problem.trace
     trace.update({"order": constructor.order, "iterations": []})
@@ -121,6 +115,9 @@ def run(problem, rng, alpha=0.2, rcl="value", cardinality=3, local_search=True, 
         if local_search:
             permutation, descent_steps = surrogate_local_optimum(instance, constructor.weights, from_mapping(mapping, instance.m))
             mapping = to_mapping(permutation, instance.n)
+        # Hooks « solution » (hybridation de bas niveau), avant l'évaluation.
+        if hooks["solution"]:
+            mapping = improve_solution(problem, mapping, hooks, rng)
         key = tuple(mapping)
         record = {
             "iteration": iteration,
@@ -143,4 +140,9 @@ def run(problem, rng, alpha=0.2, rcl="value", cardinality=3, local_search=True, 
         # 4. Descente optionnelle sur f.
         if fitness_patience > 0:
             mapping, final_cost, extra = fitness_descent(problem, mapping, cost, rng, fitness_patience, fitness_neighbours)
+        # Hooks « itération » : amélioration de la solution de l'itération.
+        if hooks["iteration"]:
+            before = problem.evaluations
+            mapping, final_cost = improve_iteration(problem, mapping, final_cost, hooks, rng)
+            extra += problem.evaluations - before
         trace["iterations"].append({**record, "evaluations": problem.evaluations, "cost": int(cost), "final_cost": int(final_cost), "fitness_descent_evaluations": int(extra)})

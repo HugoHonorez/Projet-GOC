@@ -16,6 +16,7 @@ import numpy as np
 
 # Ordre de construction et matrice W : partagés avec GRASP (optimizer/construction.py).
 from ..construction import construction_order, hardware_degree, interaction_weights
+from ..hybrid.hooks import improve_iteration, improve_solution, normalized
 from ..local_search import surrogate_descent
 from ..representation import from_mapping, to_mapping
 
@@ -132,16 +133,19 @@ def pheromone_mapping(pheromone):
     return mapping
 
 
-def build_ant(colony, pheromone, rng, local_search_steps):
-    """Construit une fourmi, puis l'améliore éventuellement par une recherche locale sur le coût de distance."""
+def build_ant(colony, pheromone, rng, local_search_steps, problem=None, hooks=None):
+    """Construit une fourmi, puis l'améliore éventuellement par une recherche locale sur le coût de distance
+    et par les hooks « solution » (hybridation de bas niveau)."""
     mapping, _ = colony.construct(pheromone, rng)
     if local_search_steps:
         permutation = surrogate_descent(colony.instance, from_mapping(mapping, colony.instance.m), local_search_steps, rng)
         mapping = to_mapping(permutation, colony.instance.n)
+    if hooks and hooks["solution"]:
+        mapping = improve_solution(problem, mapping, hooks, rng)
     return mapping
 
 
-def run(problem, rng, ants=10, evaluated=None, alpha=1.0, beta=2.0, rho=0.2, tau_min_ratio=0.05, elite_weight=1.0, local_search_steps=0, snapshot_every=5):
+def run(problem, rng, ants=10, evaluated=None, alpha=1.0, beta=2.0, rho=0.2, tau_min_ratio=0.05, elite_weight=1.0, local_search_steps=0, snapshot_every=5, hooks=None):
     """Exécute la colonie jusqu'à épuisement du budget.
 
     Paramètres :
@@ -153,10 +157,13 @@ def run(problem, rng, ants=10, evaluated=None, alpha=1.0, beta=2.0, rho=0.2, tau
     - tau_min_ratio : tau_min = tau_min_ratio × tau_max ;
     - elite_weight : quantité déposée chaque itération par la meilleure solution globale ;
     - local_search_steps : nombre d'essais de recherche locale sur le coût de distance pour chaque fourmi (0 = aucune) ;
-    - snapshot_every : une copie de la matrice des phéromones est gardée toutes les `snapshot_every` itérations.
+    - snapshot_every : une copie de la matrice des phéromones est gardée toutes les `snapshot_every` itérations ;
+    - hooks : hybridation de bas niveau (optimizer/hybrid/hooks.py) ; « solution » s'applique à chaque fourmi avant
+      le tri, « iteration » à la meilleure fourmi évaluée de l'itération, avant la mise à jour des phéromones.
     """
     instance = problem.instance
     colony = Colony(instance, alpha, beta)
+    hooks = normalized(hooks)
     # On ne peut pas évaluer plus de fourmis qu'on en construit, ni moins d'une.
     evaluated = ants if evaluated is None else max(1, min(evaluated, ants))
     tau_min, tau_max = pheromone_bounds(rho, tau_min_ratio)
@@ -171,7 +178,7 @@ def run(problem, rng, ants=10, evaluated=None, alpha=1.0, beta=2.0, rho=0.2, tau
     while True:
         iteration += 1
         # 1. Construction des fourmis.
-        mappings = [build_ant(colony, pheromone, rng, local_search_steps) for _ in range(ants)]
+        mappings = [build_ant(colony, pheromone, rng, local_search_steps, problem, hooks) for _ in range(ants)]
         # On supprime les doublons (inutile de payer deux fois le même placement dans une itération).
         unique = list({tuple(m): m for m in mappings}.values())
         # 2. Classement gratuit par coût de distance ; on garde les `evaluated` meilleures.
@@ -181,6 +188,11 @@ def run(problem, rng, ants=10, evaluated=None, alpha=1.0, beta=2.0, rho=0.2, tau
         costs = [problem.fitness(m) for m in candidates]
         # Meilleure fourmi de l'itération.
         winner = int(np.argmin(costs))
+        # Hooks « itération » : amélioration de la meilleure fourmi évaluée avant qu'elle ne dépose ses phéromones.
+        if hooks["iteration"]:
+            improved, improved_cost = improve_iteration(problem, candidates[winner], costs[winner], hooks, rng)
+            if improved_cost < costs[winner]:
+                candidates[winner], costs[winner] = improved, improved_cost
         if costs[winner] < best_cost:
             best_mapping, best_cost = candidates[winner], costs[winner]
         # 4. Évaporation : toutes les phéromones perdent une part rho.

@@ -15,12 +15,14 @@ class Result:
     evaluations: int  # nombre de vraies évaluations utilisées
     seconds: float  # durée de l'exécution
     params: dict = field(default_factory=dict)  # paramètres de l'algorithme
+    # Budget demandé (None dans les anciens fichiers) : un algorithme peut s'arrêter seul avant (evaluations < budget).
+    budget: int | None = None
     # repr=False : ces champs volumineux ne s'affichent pas quand on imprime un Result.
     history: list = field(default_factory=list, repr=False)  # (évaluation, coût, meilleur coût, temps)
     trace: dict = field(default_factory=dict, repr=False)  # informations internes propres à l'algorithme
 
     @classmethod
-    def from_problem(cls, problem, algorithm, seed, params):
+    def from_problem(cls, problem, algorithm, seed, params, budget=None):
         """Construit le résultat à partir de l'état final d'un `Problem`."""
         return cls(
             algorithm=algorithm,
@@ -31,6 +33,7 @@ class Result:
             evaluations=problem.evaluations,
             seconds=problem.elapsed,
             params=dict(params),
+            budget=budget,
             history=list(problem.history),
             trace=dict(problem.trace),
         )
