@@ -25,9 +25,13 @@ Open them in VS Code with the `.venv` kernel.
 | `02_noise_and_surrogate` | noise of the fitness per instance, re-evaluations needed, correlation between distance cost and fitness |
 | `03_metaheuristic_template` | how to write, run and compare algorithms with `optimizer`, comparison table, convergence plots, solution files |
 | `04_ant_colony` | ant colony optimisation: principle, step-by-step construction, pheromone evolution, parameter studies, comparison with baselines on all instances, best solutions |
+| `05_grasp` | GRASP: randomized greedy construction, RCL, exact local search on the distance cost, parameter studies (α, RCL type, local search), comparison with the ant colony and baselines, best solutions |
+| `06_genetic` | genetic algorithm: permutation crossovers (OX, uniform, PMX, CX) checked on the course examples, what each crossover preserves, parameter studies (crossover, selection, mutation, population, free use of the distance cost), comparison, best solutions |
 | `99_comparison` | comparison of all metaheuristics on all instances; add a new metaheuristic with one line in `CONTENDERS` (only the new one is computed) |
 
 Analysis and plotting code lives in the notebooks next to the figures it produces. Measurements are cached in `results/`.
+
+Mathematical background (in French, LaTeX formulas): `docs/theory/` covers the problem and graphs, the ant colony, GRASP and the genetic algorithm, each in the general case and applied to qubit allocation.
 
 ## Python packages
 
@@ -42,11 +46,12 @@ optimizer/              framework for metaheuristics
   problem.py            Problem: fitness with evaluation budget and history, free surrogate
   representation.py     permutation encoding and swap neighbourhood
   surrogate.py          distance cost
-  local_search.py       descent on the distance cost
+  construction.py       shared construction pieces (interaction matrix, construction order, added cost g_t)
+  local_search.py       descents on the distance cost (random tries, exact best-improvement local optimum)
   experiment.py         run_algorithm, run_grid (optionally parallel), results and history frames, save/load
   result.py             Result record (best mapping, history, algorithm trace)
   solution_files.py     <Group>_Challenge_<n>.txt writer (write_*_if_better never overwrites a better existing solution)
-  algorithms/           identity, random_search, surrogate_filtered, ant_colony
+  algorithms/           identity, random_search, surrogate_filtered, ant_colony, grasp, genetic
 visualizer/             local web app
 ```
 

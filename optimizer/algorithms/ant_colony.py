@@ -14,39 +14,12 @@ import math
 
 import numpy as np
 
+# Ordre de construction et matrice W : partagés avec GRASP (optimizer/construction.py).
+from ..construction import construction_order, hardware_degree, interaction_weights
 from ..local_search import surrogate_descent
 from ..representation import from_mapping, to_mapping
 
 name = "ant_colony"
-
-
-def interaction_weights(instance):
-    """Matrice n × n du nombre de portes à 2 qubits entre chaque paire de qubits logiques (symétrique)."""
-    weights = np.zeros((instance.n, instance.n))
-    for (a, b), weight in zip(instance.pairs, instance.weights):
-        weights[a, b] = weights[b, a] = weight
-    return weights
-
-
-def construction_order(weights):
-    """Ordre dans lequel les fourmis placent les qubits logiques.
-
-    On commence par le qubit qui a le plus de portes au total, puis on prend toujours celui qui a le plus
-    de portes avec les qubits déjà placés (égalités départagées par le total de portes, puis par le numéro).
-    Ainsi, chaque qubit placé a déjà des partenaires sur la puce pour guider son choix.
-    """
-    # « Force » d'un qubit : son nombre total de portes à 2 qubits.
-    strength = weights.sum(axis=1)
-    order = [int(np.argmax(strength))]
-    remaining = set(range(len(weights))) - set(order)
-    while remaining:
-        # Nombre de portes de chaque qubit avec ceux déjà placés.
-        link = weights[:, order].sum(axis=1)
-        # Choix du suivant : plus de liens, puis plus de force, puis plus petit numéro (d'où le -q).
-        chosen = max(remaining, key=lambda q: (link[q], strength[q], -q))
-        order.append(chosen)
-        remaining.remove(chosen)
-    return order
 
 
 class Colony:
@@ -59,7 +32,7 @@ class Colony:
         self.weights = interaction_weights(instance)
         self.order = construction_order(self.weights)
         # Nombre de voisins de chaque qubit physique, normalisé entre 0 et 1 : la « centralité ».
-        degree = np.bincount(np.asarray(instance.edges).ravel(), minlength=instance.m)
+        degree = hardware_degree(instance)
         self.centrality = degree / degree.max()
 
     def heuristic(self, qubit, mapping, free):
