@@ -1,4 +1,4 @@
-Run des "résultats" faites sur 200 évaluations, en dessus du coup d'une descente pour les algos de descente locale et surtout en dessous du truc de 300 seconde par instance donc ca a pas vraiment de valeur pour tester les algos
+Run des "résultats" faites sur 200 évaluations, en dessus du cout d'une descente pour les algos de descente locale et surtout en dessous du truc de 300 seconde par instance donc ca a pas vraiment de valeur pour tester les algos
 
 # GOC · Qubit Allocation
 
