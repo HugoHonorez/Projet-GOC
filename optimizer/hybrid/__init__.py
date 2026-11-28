@@ -10,3 +10,4 @@
 from .hooks import improve_iteration, improve_solution, normalized
 from .improvers import IMPROVERS
 from .spec import Hybrid
+from .ccl04_hybrids import ccl04_hybrides
